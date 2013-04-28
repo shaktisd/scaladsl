@@ -30,6 +30,14 @@ object TradeDSL {
 	
 	implicit def orderInt(i: Int) = new MeaningfulInt(i)*/
 	
+	class PricingStrategy(order: Order) {
+	  def defaultPricing(): Int = order.quantity * order.price
+	  def brokeragePricing(): Int = order.quantity * order.price + 100
+	   
+	}
+	
+	implicit def orderPricing(order: Order) = new PricingStrategy(order);
+	
 	case class Order(price: Int = 0, instrument: Instrument = null, quantity: Int = 0, totalValue: Int = 0,trn: TransactionType = null, account: String = null ) {
 	  def maxUnitPrice(p: Int) = copy(price = p)
 	  def to(i: Tuple2[Instrument, Int] ) = copy(instrument = i._1, quantity = i._2)
@@ -48,18 +56,16 @@ object TradeDSL {
 	def main(args: Array[String]) = {
 	  val stock = Stock("GOOGLE");
 	  val bond = Bond("IBM");
-	  def defaultPricing(qty: Int, price: Int): Int = qty * price
-	  def brokeragePricing(qty: Int,price: Int): Int = (qty * price * 1) + qty * price
 	  
 	  val order1 = new Order()
 	  .buy(10, Stock("GOLD"))
 	  .maxUnitPrice(25)
-	  .using(brokeragePricing)
+	  .brokeragePricing
 	  
 	  val order2 = new Order()
 	  .buy(10, Stock("GOLD"))
 	  .maxUnitPrice(25)
-	  .using(defaultPricing)
+	  .defaultPricing
 	  
 	  val order3 = new Order()
 	  .sell(10, Stock("GOLD"))
